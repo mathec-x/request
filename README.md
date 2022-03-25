@@ -25,13 +25,12 @@ Request.setMode("xhr");
 
 ### declare a global host for all fetchers
 ```js
-window.host = process.env.API_DEFAULT_URL
+Request.setHost("http://localhost:3001");
 ```
 
 ### inside nodejs server
 
 ``` js
-global.host = 'http://localhost:3001';
 global.fetch = require("node-fetch");
 global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 ```

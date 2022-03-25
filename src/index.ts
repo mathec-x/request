@@ -17,5 +17,7 @@ function Request<Res = any>(endPoint: string, queryString: Object = null) {
 
 
 Request.Error = ResponseError;
+Request.setHost = HttpRequest.setHost;
 Request.setMode = HttpRequest.setMode;
+Request.setDebug = HttpRequest.setDebug;
 export default Request;

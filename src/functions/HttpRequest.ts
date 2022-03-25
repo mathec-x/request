@@ -1,9 +1,26 @@
-import { AsyncResponse,  IResponse, parseHttpRequestReponse, ResponseError } from "./AsyncResponse";
-import GetRequestUrl from "./GetRequestUrl";
+import { AsyncResponse, IResponse, parseHttpRequestReponse, ResponseError } from "./AsyncResponse";
 
 type HttpMode = 'fetch' | 'xhr';
 
 let mode: HttpMode = 'fetch';
+let host: string = undefined;
+let debug: boolean = false;
+
+function logIt(...args: any){
+    if(debug) {
+        console.log(...args)
+    }
+}
+
+const GetRequestUrl = (endPoint: string) => {
+    if (endPoint.startsWith('http')) {
+        return endPoint;
+    }
+
+    let RequestUrl: string = (typeof host !== 'undefined' && host.startsWith('http')) ? host : '';
+    endPoint = endPoint.startsWith('/') ? endPoint.substring(1) : endPoint;
+    return RequestUrl + '/' + endPoint;
+};
 
 const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "upload">(
     method: Method,
@@ -59,8 +76,9 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
     try {
 
         if (mode === 'fetch' && typeof fetch !== 'undefined') {
-            const ar = await fetch(RequestUrl, bodyFetch);
-            return AsyncResponse(ar);
+            const response = await fetch(RequestUrl, bodyFetch);
+            logIt(mode, RequestUrl, response);
+            return AsyncResponse(response);
         }
 
         else if (mode === 'xhr' && typeof XMLHttpRequest !== 'undefined') {
@@ -73,11 +91,16 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
                     request.setRequestHeader(key, bodyFetch.headers[key]);
                 }
 
-                request.onload = function() { 
-                    resolve(parseHttpRequestReponse(this)) 
+                request.onload = async function () {
+                    const response = await AsyncResponse(parseHttpRequestReponse(this));
+                    logIt(mode, RequestUrl, response);
+                    resolve(response)
                 };
-                request.onerror = function() { 
-                    reject(parseHttpRequestReponse(this)) 
+                request.onerror = function () {
+                    const response = parseHttpRequestReponse(this);
+                    logIt(mode, RequestUrl, response);
+                    request.abort();
+                    resolve(response);
                 };
                 request.send(bodyFetch.body as XMLHttpRequestBodyInit);
             })
@@ -86,15 +109,25 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
         }
 
     } catch (error) {
-        const errorMessage = error.status ? error.statusText : 'ECCONREFUSED';
-        const errorData = error.status ? error : { status: 503, statusText: 'ECCONREFUSED' }
+        const errorMessage = error.status ? error.statusText : 'ECONNREFUSED';
+        const errorData = error.status ? error : { status: 503, statusText: 'ECONNREFUSED' }
 
-        throw new ResponseError(errorMessage , errorData);
+        logIt(mode, {errorMessage, errorData})
+        throw new ResponseError(errorMessage, errorData);
     }
 };
 
 HttpRequest.setMode = (newmode: HttpMode) => {
     mode = newmode
 };
+
+HttpRequest.setHost = (newhost: string) => {
+    host = newhost
+};
+
+HttpRequest.setDebug = (x: boolean) => {
+    debug = x
+};
+
 
 export default HttpRequest;

@@ -63,11 +63,11 @@ export const parseHttpRequestReponse = (request: XMLHttpRequest) => {
         headers.set(key, value)
     }
 
-    return AsyncResponse({ 
+    return { 
         json: async () => JSON.parse(responseText),
         statusText,
         status,
         ok: ok,
         headers: headers
-    } as any);
+    } as any;
 };
