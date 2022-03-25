@@ -1,5 +1,5 @@
 {
-  "name": "xhrfetch",
+  "name": "fx-request",
   "version": "1.0.0",
   "description": "multifunctional request client for xhr or fetch",
   "main": "./lib/index.js",

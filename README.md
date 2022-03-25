@@ -1,25 +1,25 @@
-# xhrfetch
+# fx-request
 
 ## client http request
 
 - installation
 
 ```bash
-npm i xhrfetch
+npm i fx-request
 ```
 
 ### using fetch
 
 ```js
 // on main app
-import Request from 'xhrfetch';
+import Request from 'fx-request';
 Request.setMode("fetch"); // default 
 ```
 
 ### using xhr
 ```js
 // on main app
-import Request from 'xhrfetch';
+import Request from 'fx-request';
 Request.setMode("xhr");
 ```
 
