@@ -77,7 +77,7 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
 
         if (mode === 'fetch' && typeof fetch !== 'undefined') {
             const response = await fetch(RequestUrl, bodyFetch);
-            logIt(mode, RequestUrl, response);
+            logIt({mode, method: bodyFetch.method, RequestUrl, response});
             return AsyncResponse(response);
         }
 
@@ -91,16 +91,16 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
                     request.setRequestHeader(key, bodyFetch.headers[key]);
                 }
 
-                request.onload = async function () {
+                request.onload = async function (ev) {
                     const response = await AsyncResponse(parseHttpRequestReponse(this));
-                    logIt(mode, RequestUrl, response);
+                    logIt({ev: 'loaded', mode, method: bodyFetch.method, RequestUrl, response});
                     resolve(response)
                 };
-                request.onerror = function () {
-                    const response = parseHttpRequestReponse(this);
-                    logIt(mode, RequestUrl, response);
+                request.onerror = async function () {
+                    const response = await AsyncResponse(parseHttpRequestReponse(this));
+                    logIt({ev: 'error', mode, method: bodyFetch.method, RequestUrl, response});
                     request.abort();
-                    resolve(response);
+                    reject(response);
                 };
                 request.send(bodyFetch.body as XMLHttpRequestBodyInit);
             })
@@ -109,10 +109,10 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
         }
 
     } catch (error) {
-        const errorMessage = error.status ? error.statusText : 'ECONNREFUSED';
-        const errorData = error.status ? error : { status: 503, statusText: 'ECONNREFUSED' }
+        const errorMessage = error.status === 0 ? error.statusText : 'ECONNREFUSED';
+        const errorData = error.status === 0 ? error : { status: 503, statusText: 'ECONNREFUSED' };
 
-        logIt(mode, {errorMessage, errorData})
+        logIt({ev: 'catch', mode, method: bodyFetch.method, RequestUrl, errorMessage, errorData});
         throw new ResponseError(errorMessage, errorData);
     }
 };

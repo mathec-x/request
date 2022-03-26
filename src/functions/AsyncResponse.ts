@@ -10,7 +10,7 @@ export class ResponseError extends Error {
     statusText: string;
     data: any;
     headers: Headers;
-    
+
     constructor(message: string, res: any) {
         super(message);
         this.status = res.status;
@@ -23,12 +23,13 @@ export class ResponseError extends Error {
 export const AsyncResponse = async (res: Response) => {
     const data = await res.json().then(jsobjct => jsobjct).catch(() => undefined);
 
-    if (!res.ok) throw new ResponseError(res.statusText, {
-        status: res.status,
-        statusText: res.statusText,
-        data: data,
-        headers: res.headers
-    });
+    if (!res?.ok) {
+        const noStatus = res.status === 0;
+        const errorMessage = !noStatus ? res.statusText : 'ECONNREFUSED';
+        const errorData = !noStatus ? res : { status: 503, statusText: 'ECONNREFUSED' };
+   
+        return new ResponseError(errorMessage, errorData);
+    };
     // if (!res.ok) throw {
     //     status: res.status,
     //     statusText: res.statusText,
@@ -54,7 +55,7 @@ export const EConnRefused = () => {
 };
 
 export const parseHttpRequestReponse = (request: XMLHttpRequest) => {
-    const { responseText, status, statusText} = request;
+    const { responseText, status, statusText } = request;
     const ok = (status >= 200 && status < 300);
 
     const headers = new Map();
@@ -63,7 +64,7 @@ export const parseHttpRequestReponse = (request: XMLHttpRequest) => {
         headers.set(key, value)
     }
 
-    return { 
+    return {
         json: async () => JSON.parse(responseText),
         statusText,
         status,
