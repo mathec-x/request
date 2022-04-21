@@ -54,7 +54,8 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
             body: data,
             headers: {
                 'Content-Type': 'multipart/form-data',
-                ...modifiedheader
+                ...modifiedheader,
+                ...headers
             }
         }
     } else {
@@ -66,8 +67,8 @@ const HttpRequest = async <Method extends "get" | "post" | "put" | "delete" | "u
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'Accept-Econding': 'gzip',
-                ...headers,
-                ...modifiedheader
+                ...modifiedheader,
+                ...headers
             }
         };
     }
